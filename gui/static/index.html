@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LangExtract HCI Web Studio</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+    <!-- App Header -->
+    <header>
+        <div class="brand">
+            <h1>LangExtract</h1>
+            <span>HCI STUDIO</span>
+        </div>
+        <div class="header-actions">
+            <button id="btn-run" class="btn btn-primary" title="Execute extraction with Gemini">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                Run Extraction
+            </button>
+            <button id="btn-save" class="btn" title="Export current annotations to JSONL">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                Export JSONL
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        
+        <!-- Left Sidebar: Configuration & Schema Builder -->
+        <aside class="sidebar">
+            
+            <!-- Section 1: Task Template Selector -->
+            <div class="sidebar-section">
+                <h2>Task Template <span class="hci-badge" title="Recognition over Recall: Guided quickstart examples to minimize user memory load.">HCI</span></h2>
+                <div class="form-group">
+                    <select id="select-template">
+                        <option value="">-- Choose Template --</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Section 2: Model Configuration -->
+            <div class="sidebar-section">
+                <h2>LLM Settings</h2>
+                <div class="form-group">
+                    <label for="select-model">Model ID</label>
+                    <select id="select-model">
+                        <option value="gemini-3.5-flash">Gemini 3.5 Flash (Recommended)</option>
+                        <option value="gemini-3.5-pro">Gemini 3.5 Pro (Reasoning)</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-top: 0.5rem;">
+                    <label for="input-api-key">Gemini API Key</label>
+                    <input type="password" id="input-api-key" placeholder="Enter API Key" autocomplete="current-password">
+                    <span class="model-badge">Saved in browser session</span>
+                </div>
+            </div>
+
+            <!-- Section 3: Prompt/Instructions Editor -->
+            <div class="sidebar-section">
+                <h2>Extraction Instructions</h2>
+                <div class="form-group">
+                    <textarea id="textarea-prompt" rows="5" placeholder="Define rules for what entities and metadata characteristics the model should extract..."></textarea>
+                </div>
+            </div>
+
+            <!-- Section 4: Visual Schema Builder -->
+            <div class="sidebar-section">
+                <h2>Extraction Classes <span class="hci-badge" title="Dual-Coding Theory: Direct correlation between color tags and text boundaries for faster scanning.">HCI</span></h2>
+                <div class="schema-list" id="schema-classes-list">
+                    <!-- Classes will be dynamically loaded here -->
+                </div>
+                <div class="add-class-box">
+                    <input type="text" id="input-new-class" placeholder="e.g. character">
+                    <button id="btn-add-class" class="btn btn-sm">Add</button>
+                </div>
+            </div>
+            
+        </aside>
+
+        <!-- Two-Pane Workspace -->
+        <main class="workspace">
+            
+            <!-- Left Pane: Source Document Viewer -->
+            <section class="paper page-document">
+                <div class="page-header">
+                    <h2>Document & Spans <span class="hci-badge" title="Human-in-the-Loop (Agency): Drag-select raw text to instantly add or override grounding labels.">HCI</span></h2>
+                    <span id="doc-id-badge" style="font-size: 0.75rem; color: var(--text-secondary); font-family: var(--font-mono);"></span>
+                </div>
+                <div class="page-content" style="position: relative;">
+                    <!-- Raw text input and span highlighted output -->
+                    <textarea id="textarea-doc-input" style="width: 100%; height: 100%; border: none; background: transparent; resize: none; font-size: 1.05rem; font-family: var(--font-sans); outline: none;" placeholder="Paste your target document text here to extract structures..."></textarea>
+                    
+                    <div id="text-viewer" class="text-viewer" style="display: none;">
+                        <!-- Highlighted spans render dynamically here -->
+                    </div>
+                </div>
+                
+                <!-- Inner Loading Spinner -->
+                <div class="loading-overlay" id="loading-overlay">
+                    <div class="spinner"></div>
+                    <div class="loading-text" id="loading-text">Analyzing grounding spans...</div>
+                </div>
+            </section>
+
+            <!-- Right Pane: Structured Extractions list -->
+            <section class="paper page-extractions">
+                <div class="page-header">
+                    <h2>Traceable Extractions <span class="hci-badge" title="Explainable AI (XAI): Direct traceability mapping every extracted attribute back to its exact text grounding.">HCI</span></h2>
+                    <button id="btn-clear-extractions" class="btn btn-sm btn-danger" style="display: none;">Clear</button>
+                </div>
+                <div class="page-content">
+                    <div id="extractions-empty" class="text-viewer empty-state">
+                        Run extraction or choose a template to view grounded entities
+                    </div>
+                    <div id="extractions-container" class="extraction-groups" style="display: none;">
+                        <!-- Groups of extractions mapped here -->
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Active Text-Selection Popover Menu -->
+    <div id="selection-popover" class="selection-popover" style="display: none;">
+        <!-- Dynamic entity shortcut actions loaded on selection -->
+    </div>
+
+    <!-- Interactive Hover Tooltip for highlights -->
+    <div id="span-hover-card" class="span-hover-card" style="display: none;">
+        <!-- Information populated dynamically -->
+    </div>
+
+    <!-- Modal Dialog: Create/Edit Extraction -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modal-title">Edit Extraction</h3>
+                <button class="btn btn-sm" id="modal-close" style="border:none; background:none; font-size:1.2rem;">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Selected Text Span</label>
+                    <input type="text" id="modal-entity-text" readonly style="background-color:#f0ede6; font-style:italic;">
+                </div>
+                <div class="form-group">
+                    <label for="modal-entity-class">Entity Class</label>
+                    <select id="modal-entity-class">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Attributes</label>
+                    <div id="modal-attributes-list" style="display:flex; flex-direction:column; gap:0.5rem;">
+                        <!-- Dynamic attribute rows will go here -->
+                    </div>
+                    <button class="btn btn-sm" id="modal-add-attribute" style="margin-top:0.5rem; align-self:flex-start;">+ Add Attribute</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" id="modal-cancel">Cancel</button>
+                <button class="btn btn-primary" id="modal-save">Apply Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="index.js"></script>
+</body>
+</html>
