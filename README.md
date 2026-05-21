@@ -54,14 +54,6 @@ This interface is built from the ground up prioritizing modern web aesthetics an
 
 ---
 
-## 👥 Development Team & Roles
-
-- **`ui-designer` (Frontend / UX Architect):** Focuses on premium CSS styles, animations, responsiveness, and glassmorphic designs.
-- **`backend-integrator` (Python / API Engineer):** Focuses on the FastAPI server, JSON REST APIs, and Gemini API integration.
-- **`hci-evaluator` (Usability & Accessibility Auditor):** Ensures Jakob Nielsen's 10 Usability Heuristics are met along with WCAG 2.1 accessibility compliance.
-
----
-
 ## ⚖️ Attribution & License
 
 This project relies on the core **LangExtract** engine originally developed by Google. We want to express our gratitude to the Google team for their work.
